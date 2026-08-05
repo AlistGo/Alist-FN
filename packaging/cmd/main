@@ -6,6 +6,7 @@ PID_FILE="${TRIM_PKGVAR}/alist.pid"
 LOG_DIR="${TRIM_PKGVAR}/log"
 STDOUT_LOG="${LOG_DIR}/stdout.log"
 BINARY="${TRIM_APPDEST}/bin/alist"
+PENDING_PASSWORD_FILE="${TRIM_PKGVAR}/.pending-admin-password"
 
 write_error() {
   message="$1"
@@ -49,6 +50,28 @@ start_service() {
   if [ ! -x "$BINARY" ]; then
     write_error "AList executable is missing or is not executable."
     return 1
+  fi
+
+  if [ -r "$PENDING_PASSWORD_FILE" ]; then
+    password="$(cat "$PENDING_PASSWORD_FILE")"
+    if [ -z "$password" ]; then
+      write_error "待应用的 AList 管理员密码为空。"
+      return 1
+    fi
+    if ! "$BINARY" --data "$TRIM_PKGVAR" admin set "$password" >> "$STDOUT_LOG" 2>&1; then
+      write_error "AList 管理员密码修改失败，请检查 ${STDOUT_LOG}。"
+      return 1
+    fi
+
+    # Keep a private recovery copy. fnOS also retains the wizard value so the
+    # password field can be revealed again from application settings.
+    password_dir="${TRIM_PKGETC:-$TRIM_PKGVAR}"
+    if mkdir -p "$password_dir" 2>/dev/null; then
+      umask 077
+      printf '%s' "$password" > "${password_dir}/admin-password" 2>/dev/null || true
+      chmod 600 "${password_dir}/admin-password" 2>/dev/null || true
+    fi
+    rm -f "$PENDING_PASSWORD_FILE"
   fi
 
   cd "$TRIM_APPDEST" || return 1
@@ -109,4 +132,3 @@ case "${1:-}" in
     exit 1
     ;;
 esac
-

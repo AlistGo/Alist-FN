@@ -1,5 +1,6 @@
 #!/bin/bash
 set -eu
 mkdir -p "$TRIM_PKGVAR/log"
-"${TRIM_APPDEST%/target}/cmd/set_password"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+"${SCRIPT_DIR}/set_password"
 exit 0
