@@ -1,0 +1,14 @@
+{
+  ".url": {
+    "AlistFN.Application": {
+      "title": "AList",
+      "icon": "images/icon_{0}.png",
+      "type": "url",
+      "protocol": "http",
+      "port": "5244",
+      "url": "/",
+      "allUsers": true
+    }
+  }
+}
+

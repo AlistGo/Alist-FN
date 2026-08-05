@@ -1,0 +1,112 @@
+#!/bin/bash
+
+set -u
+
+PID_FILE="${TRIM_PKGVAR}/alist.pid"
+LOG_DIR="${TRIM_PKGVAR}/log"
+STDOUT_LOG="${LOG_DIR}/stdout.log"
+BINARY="${TRIM_APPDEST}/bin/alist"
+
+write_error() {
+  message="$1"
+  if [ -n "${TRIM_TEMP_LOGFILE:-}" ]; then
+    printf '%s\n' "$message" > "$TRIM_TEMP_LOGFILE"
+  fi
+  printf '%s\n' "$message" >&2
+}
+
+read_pid() {
+  if [ -r "$PID_FILE" ]; then
+    pid="$(cat "$PID_FILE" 2>/dev/null || true)"
+    case "$pid" in
+      ''|*[!0-9]*) return 1 ;;
+      *) printf '%s\n' "$pid" ;;
+    esac
+  else
+    return 1
+  fi
+}
+
+is_running() {
+  pid="$(read_pid)" || return 1
+  kill -0 "$pid" 2>/dev/null || return 1
+
+  if [ -r "/proc/${pid}/exe" ]; then
+    running_exe="$(readlink "/proc/${pid}/exe" 2>/dev/null || true)"
+    [ "$running_exe" = "$BINARY" ] || return 1
+  fi
+  return 0
+}
+
+start_service() {
+  if is_running; then
+    return 0
+  fi
+
+  rm -f "$PID_FILE"
+  mkdir -p "$LOG_DIR"
+
+  if [ ! -x "$BINARY" ]; then
+    write_error "AList executable is missing or is not executable."
+    return 1
+  fi
+
+  cd "$TRIM_APPDEST" || return 1
+  nohup "$BINARY" --data "$TRIM_PKGVAR" server >> "$STDOUT_LOG" 2>&1 &
+  pid=$!
+  printf '%s\n' "$pid" > "$PID_FILE"
+
+  waited=0
+  while [ "$waited" -lt 10 ]; do
+    if is_running; then
+      return 0
+    fi
+    sleep 1
+    waited=$((waited + 1))
+  done
+
+  rm -f "$PID_FILE"
+  write_error "AList failed to start. Check ${STDOUT_LOG}."
+  return 1
+}
+
+stop_service() {
+  if ! is_running; then
+    rm -f "$PID_FILE"
+    return 0
+  fi
+
+  pid="$(read_pid)" || return 0
+  kill "$pid" 2>/dev/null || true
+
+  waited=0
+  while kill -0 "$pid" 2>/dev/null && [ "$waited" -lt 20 ]; do
+    sleep 1
+    waited=$((waited + 1))
+  done
+
+  if kill -0 "$pid" 2>/dev/null; then
+    kill -9 "$pid" 2>/dev/null || true
+  fi
+  rm -f "$PID_FILE"
+}
+
+case "${1:-}" in
+  start)
+    start_service
+    ;;
+  stop)
+    stop_service
+    ;;
+  status)
+    if is_running; then
+      exit 0
+    fi
+    exit 3
+    ;;
+  *)
+    write_error "Usage: $0 {start|stop|status}"
+    exit 1
+    ;;
+esac
+

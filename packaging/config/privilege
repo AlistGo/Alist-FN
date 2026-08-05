@@ -1,0 +1,8 @@
+{
+  "defaults": {
+    "run-as": "package"
+  },
+  "username": "alist_fn",
+  "groupname": "alist_fn"
+}
+

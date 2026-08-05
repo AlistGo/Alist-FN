@@ -1,0 +1,24 @@
+appname=AlistFN
+version=@VERSION@
+display_name=AList
+desc=AList 是一个支持多种存储的文件列表与 WebDAV 程序。本包由 Alist-FN 自动封装自官方发布版本。
+source=thirdparty
+platform=@PLATFORM@
+
+maintainer=AlistGo
+maintainer_url=https://github.com/AlistGo/alist
+distributor=Alist-FN Contributors
+distributor_url=https://github.com/@REPOSITORY@
+
+os_min_version=1.2.0
+
+desktop_uidir=ui
+desktop_applaunchname=AlistFN.Application
+
+service_port=5244
+checkport=true
+ctl_stop=true
+disable_authorization_path=false
+
+changelog=同步 AList @UPSTREAM_TAG@ 官方稳定版。
+
