@@ -1,5 +1,5 @@
 #!/bin/bash
 set -eu
 mkdir -p "$TRIM_PKGVAR/log"
+"${TRIM_APPDEST%/target}/cmd/set_password"
 exit 0
-

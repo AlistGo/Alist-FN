@@ -1,3 +1,4 @@
 #!/bin/bash
+set -eu
+"${TRIM_APPDEST%/target}/cmd/set_password"
 exit 0
-

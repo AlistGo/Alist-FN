@@ -1,0 +1,25 @@
+[
+  {
+    "stepTitle": "设置 AList 管理员密码",
+    "items": [
+      {
+        "type": "password",
+        "field": "wizard_alist_password",
+        "label": "管理员密码",
+        "rules": [
+          { "required": true, "message": "请输入管理员密码" },
+          { "min": 6, "max": 128, "message": "密码长度应为 6 到 128 个字符" }
+        ]
+      },
+      {
+        "type": "password",
+        "field": "wizard_alist_password_confirm",
+        "label": "确认管理员密码",
+        "rules": [
+          { "required": true, "message": "请再次输入管理员密码" },
+          { "min": 6, "max": 128, "message": "密码长度应为 6 到 128 个字符" }
+        ]
+      }
+    ]
+  }
+]

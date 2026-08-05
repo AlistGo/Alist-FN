@@ -11,6 +11,8 @@ done
 jq -e . "$repo_root/packaging/config/privilege" >/dev/null
 jq -e . "$repo_root/packaging/config/resource" >/dev/null
 jq -e . "$repo_root/packaging/app/ui/config" >/dev/null
+jq -e . "$repo_root/packaging/wizard/install" >/dev/null
+jq -e . "$repo_root/packaging/wizard/config" >/dev/null
 
 required=(
   packaging/manifest.in
@@ -19,6 +21,8 @@ required=(
   packaging/ICON.PNG
   packaging/ICON_256.PNG
   packaging/app/ui/config
+  packaging/wizard/install
+  packaging/wizard/config
   packaging/app/ui/images/icon_64.png
   packaging/app/ui/images/icon_256.png
   packaging/cmd/main
@@ -31,5 +35,7 @@ for path in "${required[@]}"; do
     exit 1
   fi
 done
+
+bash "$repo_root/tests/test-set-password.sh"
 
 echo "Static checks passed."
