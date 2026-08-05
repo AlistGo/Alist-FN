@@ -12,19 +12,27 @@ cp "$repo_root/packaging/cmd/set_password" "$app_root/cmd/set_password"
 cp "$repo_root/packaging/cmd/main" "$app_root/cmd/main"
 chmod 0755 "$app_root/cmd/set_password"
 
-cat > "$app_root/target/bin/alist" <<'EOF'
-#!/usr/bin/env bash
-set -eu
-case "${*: -1}" in
-  server)
-    sleep 30
-    ;;
-  *)
-    printf '%s\n' "$@" > "$TEST_ARGS_FILE"
-    ;;
-esac
+cat > "$test_root/fake-alist.c" <<'EOF'
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+int main(int argc, char **argv) {
+  if (argc > 1 && strcmp(argv[argc - 1], "server") == 0) {
+    sleep(30);
+    return 0;
+  }
+
+  const char *path = getenv("TEST_ARGS_FILE");
+  if (path == NULL) return 1;
+  FILE *file = fopen(path, "w");
+  if (file == NULL) return 1;
+  for (int i = 1; i < argc; i++) fprintf(file, "%s\n", argv[i]);
+  return fclose(file);
+}
 EOF
-chmod 0755 "$app_root/target/bin/alist"
+cc "$test_root/fake-alist.c" -o "$app_root/target/bin/alist"
 chmod 0755 "$app_root/cmd/main"
 
 password='A safe $password! 123'
